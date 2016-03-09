@@ -12,5 +12,13 @@ class TestBook(unittest.TestCase):
     self.assertFalse(book.lends)
     self.assertEqual([b], book.borrows)
 
+  def test_add_lend_to_empty_book(self):
+    book = Book(5)
+    l = Order(None, Side.LEND, 10000, 5, 7)
+    book.add(l)
+    self.assertFalse(book.borrows)
+    self.assertEqual([l], book.lends)
+
+
 if __name__ == '__main__':
  unittest.main() 
