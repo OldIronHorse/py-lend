@@ -34,3 +34,5 @@ class Book:
   def add(self, order):
     {Side.BORROW: lambda: self.borrows.append(order),
      Side.LEND: lambda: self.lends.append(order)}[order.side]()
+    self.borrows.sort(key=lambda o: o.rate, reverse=True)
+    self.lends.sort(key=lambda o: o.rate)
