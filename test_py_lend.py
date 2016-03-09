@@ -55,8 +55,28 @@ class TestBook(unittest.TestCase):
     self.assertFalse(book.borrows)
     self.assertEqual([l2, l1], book.lends)
 
+  def test_add_borrow_to_bottom_of_book(self):
+    book = Book(5)
+    b1 = Order(None, Side.BORROW, 10000, 5, 6)
+    b2 = Order(None, Side.BORROW, 10000, 5, 8)
+    b3 = Order(None, Side.BORROW, 10000, 5, 7)
+    book.add(b1)
+    book.add(b2)
+    book.add(b3)
+    self.assertFalse(book.lends)
+    self.assertEqual([b2, b3, b1], book.borrows)
 
-  #TODO add order to middle of book
+  def test_add_lend_to_top_of_book(self):
+    book = Book(5)
+    l1 = Order(None, Side.LEND, 10000, 5, 8)
+    l2 = Order(None, Side.LEND, 10000, 5, 6)
+    l3 = Order(None, Side.LEND, 10000, 5, 7)
+    book.add(l1)
+    book.add(l2)
+    book.add(l3)
+    self.assertFalse(book.borrows)
+    self.assertEqual([l2, l3, l1], book.lends)
+
   #TODO preserve time priority
 
 
