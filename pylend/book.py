@@ -49,3 +49,12 @@ def cross(book):
   except IndexError:
     pass
   return (book, None)
+
+def cross_all(book):
+  contracts = []
+  while True:
+    book, contract = cross(book)
+    if contract is None:
+      break
+    contracts.append(contract)
+  return (book, contracts)

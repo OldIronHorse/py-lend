@@ -1,4 +1,4 @@
-from pylend import Side, new_book, new_order, add_order, cross
+from pylend import Side, new_book, new_order, add_order, cross, cross_all
 
 from unittest import TestCase
 
@@ -86,6 +86,15 @@ class TestBook(TestCase):
     self.assertTrue(contract is None)
     self.assertFalse(book1.lends)
     self.assertFalse(book1.borrows)
+
+  def test_cross_no_borrows(self):
+    book = new_book(5)
+    l = new_order(None, Side.LEND, 10000, 5, 8)
+    book1 = add_order(book, l)
+    book3, contract = cross(book1)
+    self.assertTrue(contract is None)
+    self.assertEqual([l], book3.lends)
+    self.assertEqual([], book3.borrows)
 
   def test_cross_outside_margin(self):
     book = new_book(5)
@@ -184,6 +193,40 @@ class TestBook(TestCase):
     self.assertEqual(5000, book3.lends[0].leaves)
     self.assertEqual(5, book3.lends[0].term)
     self.assertEqual(6, book3.lends[0].rate)
+
+  def test_cross_partial_lend_multiple_borrow(self):
+    book = new_book(5)
+    l = new_order('L. Ender', Side.LEND, 15000, 5, 6)
+    b1 = new_order('B. Orrower', Side.BORROW, 10000, 5, 8)
+    b2 = new_order('A. N. Other', Side.BORROW, 8000, 5, 7)
+    book = add_order(add_order(add_order(book, l), b1), b2)
+    book1, contract1 = cross(book)
+    book2, contract2 = cross(book1)
+    book3, contract3 = cross(book2)
+    self.assertEqual(10000, contract1.principle)
+    self.assertEqual(5, contract1.term)
+    self.assertEqual(7, contract1.rate)
+    self.assertEqual(5000, contract2.principle)
+    self.assertEqual(5, contract2.term)
+    self.assertEqual(6.5, contract2.rate)
+    self.assertEqual(None, contract3)
+    self.assertEqual(book2, book3)
+    #TODO: check books states?
+
+  def test_cross_all_partial_lend_multiple_borrow(self):
+    book = new_book(5)
+    l = new_order('L. Ender', Side.LEND, 15000, 5, 6)
+    b1 = new_order('B. Orrower', Side.BORROW, 10000, 5, 8)
+    b2 = new_order('A. N. Other', Side.BORROW, 8000, 5, 7)
+    book = add_order(add_order(add_order(book, l), b1), b2)
+    book1, contracts = cross_all(book)
+    self.assertEqual(10000, contracts[0].principle)
+    self.assertEqual(5, contracts[0].term)
+    self.assertEqual(7, contracts[0].rate)
+    self.assertEqual(5000, contracts[1].principle)
+    self.assertEqual(5, contracts[1].term)
+    self.assertEqual(6.5, contracts[1].rate)
+    #TODO: check books states?
 
 #TODO multiple orders to fill
 #TODO firm/non-firm (borrow fully filled)
