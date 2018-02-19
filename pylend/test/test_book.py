@@ -1,4 +1,5 @@
-from pylend import Side, new_book, new_order, add_order, cross, cross_all
+from pylend import Side, new_book, new_order, add_order, cross, cross_all, \
+  cancel_order
 
 from unittest import TestCase
 
@@ -228,7 +229,32 @@ class TestBook(TestCase):
     self.assertEqual(6.5, contracts[1].rate)
     #TODO: check books states?
 
-#TODO multiple orders to fill
+  def test_cancel_unfilled_only_borrow(self):
+    book = new_book(5)
+    b = new_order('B. Orrower', Side.BORROW, 10000, 5, 8)
+    book = add_order(book, b)
+    self.assertEqual([b], book.borrows)
+    book1, cancelled = cancel_order(book, b.id)
+    self.assertEqual(b, cancelled)
+    self.assertFalse(book1.borrows)
+  #TODO: cancel with mutiple orders on the book
+
+  def test_cancel_partially_filled(self):
+    book = new_book(5)
+    l = new_order('L. Ender', Side.LEND, 15000, 5, 6)
+    b = new_order('B. Orrower', Side.BORROW, 10000, 5, 8)
+    book, contract = cross(add_order(add_order(book, l), b))
+    book_cancelled, order_cancelled = cancel_order(book, l.id)
+    self.assertFalse(book_cancelled.lends)
+    self.assertFalse(book_cancelled.borrows)
+    self.assertEqual('L. Ender', order_cancelled.party)
+    self.assertEqual(Side.LEND, order_cancelled.side)
+    self.assertEqual(15000, order_cancelled.principle)
+    self.assertEqual(5000, order_cancelled.leaves)
+    self.assertEqual(5, order_cancelled.term)
+    self.assertEqual(6, order_cancelled.rate)
+
+
 #TODO firm/non-firm (borrow fully filled)
 
 #TODO cancels? when can you cancel and what does it unwind?
