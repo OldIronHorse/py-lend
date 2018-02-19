@@ -212,7 +212,14 @@ class TestBook(TestCase):
     self.assertEqual(6.5, contract2.rate)
     self.assertEqual(None, contract3)
     self.assertEqual(book2, book3)
-    #TODO: check books states?
+    self.assertFalse(book2.lends)
+    self.assertEqual(1, len(book3.borrows))
+    self.assertEqual('A. N. Other', book3.borrows[0].party)
+    self.assertEqual(Side.BORROW, book3.borrows[0].side)
+    self.assertEqual(8000, book3.borrows[0].principle)
+    self.assertEqual(3000, book3.borrows[0].leaves)
+    self.assertEqual(5, book3.borrows[0].term)
+    self.assertEqual(7, book3.borrows[0].rate)
 
   def test_cross_all_partial_lend_multiple_borrow(self):
     book = new_book(5)
@@ -237,7 +244,19 @@ class TestBook(TestCase):
     book1, cancelled = cancel_order(book, b.id)
     self.assertEqual(b, cancelled)
     self.assertFalse(book1.borrows)
-  #TODO: cancel with mutiple orders on the book
+
+  def test_cancel_unfilled_multiple_borrows(self):
+    book = new_book(5)
+    book = add_order(book, new_order('B. Orrower1', Side.BORROW, 10000, 5, 7))
+    book = add_order(book, new_order('B. Orrower2', Side.BORROW, 20000, 5, 6))
+    b = new_order('B. Orrower', Side.BORROW, 11000, 5, 8)
+    book = add_order(book, b)
+    book = add_order(book, new_order('B. Orrower3', Side.BORROW, 30000, 5, 9))
+    book = add_order(book, new_order('B. Orrower4', Side.BORROW, 40000, 5, 5))
+    book = add_order(book, new_order('B. Orrower5', Side.BORROW, 50000, 5, 8))
+    book1, cancelled = cancel_order(book, b.id)
+    self.assertEqual(b, cancelled)
+    self.assertEqual(5, len(book1.borrows))
 
   def test_cancel_partially_filled(self):
     book = new_book(5)
