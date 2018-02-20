@@ -60,10 +60,13 @@ def cross_all(book):
   return (book, contracts)
 
 def cancel_order(book, order_id):
-  return (
-    book._replace(
-      borrows=[o for o in book.borrows if o.id != order_id],
-      lends=[o for o in book.lends if o.id != order_id]
-    ),
-    [o for o in book.lends + book.borrows if o.id == order_id][0]
-  )
+  try:
+    return (
+      book._replace(
+        borrows=[o for o in book.borrows if o.id != order_id],
+        lends=[o for o in book.lends if o.id != order_id]
+      ),
+      [o for o in book.lends + book.borrows if o.id == order_id][0]
+    )
+  except IndexError:
+    return (book, None)

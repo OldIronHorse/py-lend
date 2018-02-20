@@ -79,6 +79,37 @@ class TestBook(TestCase):
     self.assertFalse(book3.borrows)
     self.assertEqual([l2, l3, l1], book3.lends)
 
+  def test_time_priority_borrow(self):
+    book = new_book(5)
+    b1 = new_order('b1', Side.BORROW, 10000, 5, 6)
+    b2 = new_order('b2', Side.BORROW, 10000, 5, 4)
+    b3 = new_order('b3', Side.BORROW, 10000, 5, 6)
+    b4 = new_order('b4', Side.BORROW, 10000, 5, 8)
+    book = add_order(add_order(add_order(add_order(book,b1),b2),b3),b4)
+    self.assertFalse(book.lends)
+    self.assertEqual([b4, b1, b3, b2], book.borrows)
+    book, cancelled_b1 = cancel_order(book, b1.id)
+    self.assertEqual(b1, cancelled_b1)
+    self.assertEqual([b4, b3, b2], book.borrows)
+    book = add_order(book, b1)
+    self.assertEqual([b4, b3, b1, b2], book.borrows)
+
+
+  def test_time_priority_lend(self):
+    book = new_book(5)
+    l1 = new_order('l1', Side.LEND, 10000, 5, 6)
+    l2 = new_order('l2', Side.LEND, 10000, 5, 4)
+    l3 = new_order('l3', Side.LEND, 10000, 5, 6)
+    l4 = new_order('l4', Side.LEND, 10000, 5, 8)
+    book = add_order(add_order(add_order(add_order(book,l1),l2),l3),l4)
+    self.assertFalse(book.borrows)
+    self.assertEqual([l2, l1, l3, l4], book.lends)
+    book, cancelled_l1 = cancel_order(book, l1.id)
+    self.assertEqual(l1, cancelled_l1)
+    self.assertEqual([l2, l3, l4], book.lends)
+    book = add_order(book, l1)
+    self.assertEqual([l2, l3, l1, l4], book.lends)
+
   #TODO preserve time priority or favour by size?
 
   def test_cross_empty_book(self):
@@ -273,6 +304,16 @@ class TestBook(TestCase):
     self.assertEqual(5, order_cancelled.term)
     self.assertEqual(6, order_cancelled.rate)
 
+  def test_cancel_filled_order(self):
+    book = new_book(5)
+    l = new_order('L. Ender', Side.LEND, 15000, 5, 6)
+    b1 = new_order('B. Orrower', Side.BORROW, 10000, 5, 8)
+    b2 = new_order('A. N. Other', Side.BORROW, 8000, 5, 7)
+    book, contracts = cross_all(add_order(add_order(add_order(book, 
+                                                              l), b1), b2))
+    book_cancelled, order_cancelled = cancel_order(book, b1.id)
+    self.assertEqual(book, book_cancelled)
+    self.assertEqual(None, order_cancelled)
 
 #TODO firm/non-firm (borrow fully filled)
 
