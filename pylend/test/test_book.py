@@ -3,9 +3,11 @@ from pylend import Side, new_book, new_order, add_order, cross, cross_all, \
 
 from unittest import TestCase
 
-class TestBook(TestCase):
+class TestAddOrder(TestCase):
   def setUp(self):
     self.maxDiff = None
+
+  #TODO test_add_wrong_term
 
   def test_add_borrow_to_empty_book(self):
     book = new_book(5)
@@ -94,7 +96,6 @@ class TestBook(TestCase):
     book = add_order(book, b1)
     self.assertEqual([b4, b3, b1, b2], book.borrows)
 
-
   def test_time_priority_lend(self):
     book = new_book(5)
     l1 = new_order('l1', Side.LEND, 10000, 5, 6)
@@ -110,7 +111,10 @@ class TestBook(TestCase):
     book = add_order(book, l1)
     self.assertEqual([l2, l3, l1, l4], book.lends)
 
-  #TODO preserve time priority or favour by size?
+
+class TestCross(TestCase):
+  def setUp(self):
+    self.maxDiff = None
 
   def test_cross_empty_book(self):
     book = new_book(5)
@@ -266,6 +270,11 @@ class TestBook(TestCase):
     self.assertEqual(5, contracts[1].term)
     self.assertEqual(6.5, contracts[1].rate)
     #TODO: check books states?
+
+
+class TestCancelOrder(TestCase):
+  def setUp(self):
+    self.maxDiff=None
 
   def test_cancel_unfilled_only_borrow(self):
     book = new_book(5)

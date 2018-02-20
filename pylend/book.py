@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from .order import Side
-from .contract import Contract
+from .contract import new_contract
 
 Book = namedtuple('Book', 'term lends borrows')
 
@@ -27,24 +27,13 @@ def add_order(book, order):
 def cross(book):
   try:
     if book.borrows[0].rate >= book.lends[0].rate:
-      contract_amount = min(book.borrows[0].leaves, book.lends[0].leaves)
-      new_borrow = book.borrows[0]._replace(
-          leaves=book.borrows[0].leaves - contract_amount)
-      new_lend = book.lends[0]._replace(
-          leaves=book.lends[0].leaves - contract_amount)
-      contract=Contract(
-        borrow=new_borrow,
-        lend=new_lend,
-        term=book.term,
-        rate=(book.borrows[0].rate + book.lends[0].rate) / 2,
-        principle=contract_amount
-      )
+      contract = new_contract(book.borrows[0], book.lends[0])
       new_borrows = book.borrows[1:]
-      if new_borrow.leaves > 0:
-        new_borrows = [new_borrow] + new_borrows
+      if contract.borrow.leaves > 0:
+        new_borrows = [contract.borrow] + new_borrows
       new_lends = book.lends[1:]
-      if new_lend.leaves > 0:
-        new_lends = [new_lend] + new_lends
+      if contract.lend.leaves > 0:
+        new_lends = [contract.lend] + new_lends
       return (book._replace(borrows=new_borrows, lends=new_lends),  contract)
   except IndexError:
     pass
