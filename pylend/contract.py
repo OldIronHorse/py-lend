@@ -1,8 +1,15 @@
 from collections import namedtuple
 
+from .order import Side
+from .exceptions import TermMismatchError, SideMismatchError
+
 Contract = namedtuple('Contract', 'lend borrow term rate principle')
 
 def new_contract(borrow, lend):
+  if borrow.side != Side.BORROW or lend.side != Side.LEND:
+    raise SideMismatchError
+  if lend.term != borrow.term:
+    raise TermMismatchError
   contract_amount = min(borrow.leaves, lend.leaves)
   return Contract(
     principle=contract_amount,

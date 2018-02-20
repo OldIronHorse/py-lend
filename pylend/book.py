@@ -2,6 +2,7 @@ from collections import namedtuple
 
 from .order import Side
 from .contract import new_contract
+from .exceptions import TermMismatchError
 
 Book = namedtuple('Book', 'term lends borrows')
 
@@ -22,6 +23,8 @@ adders = {
 }
 
 def add_order(book, order):
+  if book.term != order.term:
+    raise TermMismatchError
   return adders[order.side](book, order);
 
 def cross(book):

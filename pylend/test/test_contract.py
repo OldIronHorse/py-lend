@@ -1,10 +1,25 @@
 from unittest import TestCase
 
-from pylend import completed_orders, new_contract, new_order, Side
+from pylend import completed_orders, new_contract, new_order, Side, \
+  SideMismatchError, TermMismatchError
 
 class TestNewContract(TestCase):
   def setUp(self):
     self.maxDiff = None
+
+  def test_two_lends(self):
+    with self.assertRaises(SideMismatchError):
+      new_contract(
+        new_order('A. Borrower', Side.BORROW, 10000, 5, 7),
+        new_order('An Other Borrower', Side.BORROW, 10000, 5, 7)
+      )
+
+  def test_mismatched_terms(self):
+    with self.assertRaises(TermMismatchError):
+      new_contract(
+        new_order('A. Borrower', Side.BORROW, 10000, 5, 7),
+        new_order('A. Lender', Side.LEND, 10000, 6, 7)
+      )
 
   def test_valid_equal_rates_principles(self):
     contract = new_contract(
@@ -48,7 +63,6 @@ class TestNewContract(TestCase):
     self.assertEqual(5, contract.lend.term)
     self.assertEqual(7, contract.lend.rate)
 
-#TODO  completed_orders(contract/contracts) : generate set of completed orders
 class TestCompletedOrders(TestCase):
   def setUp(self):
     self.maxDiff = None

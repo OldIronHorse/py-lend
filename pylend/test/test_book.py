@@ -1,5 +1,5 @@
 from pylend import Side, new_book, new_order, add_order, cross, cross_all, \
-  cancel_order
+  cancel_order, TermMismatchError
 
 from unittest import TestCase
 
@@ -7,7 +7,9 @@ class TestAddOrder(TestCase):
   def setUp(self):
     self.maxDiff = None
 
-  #TODO test_add_wrong_term
+  def test_add_wrong_term(self):
+    with self.assertRaises(TermMismatchError):
+      add_order(new_book(6), new_order(None, Side.BORROW, 10000, 5, 7))
 
   def test_add_borrow_to_empty_book(self):
     book = new_book(5)
